@@ -24,7 +24,7 @@ public class Enemigo {
     @JoinColumn(name = "casilla_id")
     private Casilla casilla;
 
-    @OneToMany(mappedBy = "enemigo", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "esbirroEnemigo", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Batalla> batallas = new HashSet<>();
 
     // Constructores, getters y setters

@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/Aplicacion-JPA-Spring-Boot-con-ayuda-de-chatgpt.iml" filepath="$PROJECT_DIR$/.idea/Aplicacion-JPA-Spring-Boot-con-ayuda-de-chatgpt.iml" />
+      <module fileurl="file://$PROJECT_DIR$/jpa.iml" filepath="$PROJECT_DIR$/jpa.iml" />
     </modules>
   </component>
 </project>

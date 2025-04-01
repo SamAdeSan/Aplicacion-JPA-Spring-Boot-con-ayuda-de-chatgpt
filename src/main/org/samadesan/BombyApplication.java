@@ -7,6 +7,9 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+import java.util.Random;
+import java.util.Scanner;
+
 @SpringBootApplication
 public class BombyApplication implements CommandLineRunner {
 
@@ -19,14 +22,7 @@ public class BombyApplication implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        // Aquí puedes llamar a los métodos del servicio para interactuar con la base de datos.
-        Personaje personaje = new Personaje();
-        personaje.setNombre("Bomby");
-        personaje.setAtaque(100);
-        personaje.setVida(200);
-        personaje.setDefensa(50);
-        personajeServicio.guardar(personaje);
-
-        System.out.println("Personaje guardado: " + personaje.getNombre());
+        Juego juego = new Juego();
+        juego.iniciar();
     }
 }

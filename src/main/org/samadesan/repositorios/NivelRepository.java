@@ -6,5 +6,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface NivelRepository extends JpaRepository<Nivel, Integer> {
-    // Aquí puedes agregar consultas personalizadas si es necesario
+    // Aquí agregamos consultas personalizadas si es necesario
+    Nivel findTopByOrderByIdDesc();  // Esto obtiene el último nivel registrado
 }
