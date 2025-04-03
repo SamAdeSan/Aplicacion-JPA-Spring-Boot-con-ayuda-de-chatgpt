@@ -17,6 +17,9 @@ public class Enemigo {
     private int vida;
     private int defensa;
 
+    public Enemigo() {
+    }
+
     @Enumerated(EnumType.STRING)
     private EfectoEspecial efectoEspecial;
 
@@ -29,12 +32,10 @@ public class Enemigo {
 
     // Constructores, getters y setters
 
-    public Enemigo() {}
-
-    public Enemigo(String nombre, int ataque, int vida, int defensa, EfectoEspecial efectoEspecial) {
+    public Enemigo(String nombre, int vida, int ataque, int defensa, EfectoEspecial efectoEspecial) {
         this.nombre = nombre;
-        this.ataque = ataque;
         this.vida = vida;
+        this.ataque = ataque;
         this.defensa = defensa;
         this.efectoEspecial = efectoEspecial;
     }

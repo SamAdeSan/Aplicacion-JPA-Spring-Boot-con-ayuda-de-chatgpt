@@ -13,13 +13,20 @@ public class Jefe {
     private int ataque;
     private int vida;
     private int defensa;
-
     // Nuevo campo
-    private String efectoEspecial; // fuego, hielo, veneno, espina, etc.
+    private EfectoEspecial efectoEspecial; // fuego, hielo, veneno, espina, etc.
 
     @OneToOne
     @JoinColumn(name = "casilla_id", unique = true)
     private Casilla casilla;
+
+    public Jefe(String nombre, int ataque, int vida, int defensa, EfectoEspecial efectoEspecial) {
+        this.nombre = nombre;
+        this.ataque = ataque;
+        this.vida = vida;
+        this.defensa = defensa;
+        this.efectoEspecial = efectoEspecial;
+    }
 
     // Getters y setters
     public Integer getId() { return id; }
@@ -37,8 +44,8 @@ public class Jefe {
     public int getDefensa() { return defensa; }
     public void setDefensa(int defensa) { this.defensa = defensa; }
 
-    public String getEfectoEspecial() { return efectoEspecial; }
-    public void setEfectoEspecial(String efectoEspecial) { this.efectoEspecial = efectoEspecial; }
+    public EfectoEspecial getEfectoEspecial() { return efectoEspecial; }
+    public void setEfectoEspecial(EfectoEspecial efectoEspecial) { this.efectoEspecial = efectoEspecial; }
 
     public Casilla getCasilla() { return casilla; }
     public void setCasilla(Casilla casilla) { this.casilla = casilla; }

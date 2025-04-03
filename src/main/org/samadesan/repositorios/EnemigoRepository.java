@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface EnemigoRepository extends JpaRepository<Enemigo, Integer> {
     // Métodos personalizados si son necesarios
+    Enemigo getRandomEnemigo();
 }

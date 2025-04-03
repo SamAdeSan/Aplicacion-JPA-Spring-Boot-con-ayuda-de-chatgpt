@@ -13,7 +13,7 @@ public class Nivel {
     private String nombre;
 
     // El tipo de nivel (por ejemplo: "lucha", "minijefe", "objeto", etc.)
-    private String tipo;
+    private TipoCasilla tipo;
 
     @OneToMany(mappedBy = "nivel", cascade = CascadeType.ALL)
     private List<Casilla> casillas;
@@ -35,11 +35,11 @@ public class Nivel {
         this.nombre = nombre;
     }
 
-    public String getTipo() {
+    public TipoCasilla getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
+    public void setTipo(TipoCasilla tipo) {
         this.tipo = tipo;
     }
 

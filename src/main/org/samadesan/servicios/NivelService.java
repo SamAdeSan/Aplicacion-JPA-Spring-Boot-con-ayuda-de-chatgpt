@@ -36,7 +36,7 @@ public class NivelService {
             Nivel nivel = nivelOpt.get();
             nivel.setNombre(nuevoNivel.getNombre());
             nivel.setTipo(nuevoNivel.getTipo());
-            nivel.setCasillas(nuevoNivel.getCasillas()); // Si es necesario actualizar las casillas
+            nivel.setCasillas(nuevoNivel.getCasillas()); // Si es necesario, actualizar las casillas
             return nivelRepository.save(nivel);
         }
         return null;

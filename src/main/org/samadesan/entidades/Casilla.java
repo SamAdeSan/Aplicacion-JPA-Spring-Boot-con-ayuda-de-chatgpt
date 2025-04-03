@@ -12,7 +12,7 @@ public class Casilla {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    private String tipo;
+    private TipoCasilla tipo;
 
     @ManyToOne
     @JoinColumn(name = "nivel_id")
@@ -31,7 +31,7 @@ public class Casilla {
 
     public Casilla() {}
 
-    public Casilla(String tipo, Nivel nivel) {
+    public Casilla(TipoCasilla tipo, Nivel nivel) {
         this.tipo = tipo;
         this.nivel = nivel;
     }
@@ -46,11 +46,11 @@ public class Casilla {
         this.id = id;
     }
 
-    public String getTipo() {
+    public TipoCasilla getTipo() {
         return tipo;
     }
 
-    public void setTipo(String tipo) {
+    public void setTipo(TipoCasilla tipo) {
         this.tipo = tipo;
     }
 
