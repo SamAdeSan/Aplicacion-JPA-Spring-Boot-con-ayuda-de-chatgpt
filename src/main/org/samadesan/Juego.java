@@ -71,6 +71,7 @@ public class Juego {
         } else {
             System.out.println("Personaje cargado: " + personaje.getNombre());
         }
+        this.personaje = personaje;
     }
 
     // Mostrar opciones al jugador
