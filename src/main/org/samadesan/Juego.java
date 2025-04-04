@@ -1,11 +1,13 @@
 package org.samadesan;
 
+import org.samadesan.entidades.EfectoEspecial;
 import org.samadesan.entidades.Enemigo;
 import org.samadesan.entidades.Jefe;
 import org.samadesan.entidades.Personaje;
 import org.samadesan.repositorios.EnemigoRepository;
 import org.samadesan.repositorios.JefeRepository;
 import org.samadesan.repositorios.PersonajeRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.Random;
@@ -16,7 +18,6 @@ public class Juego {
     private static final double OBJETO_PROB = 0.25;
     private static final double LUCHA_PROB = 0.15;
     private static final double MINIJEF_PROB = 0.09;
-    private static final double JEFE_PROB = 0.01;
 
     private final Scanner scanner;
     private Personaje personaje;
@@ -25,8 +26,7 @@ public class Juego {
     private final JefeRepository jefeRepository;
 
     // Constructor que recibe los repositorios y el escáner
-    public Juego(PersonajeRepository personajeRepository, EnemigoRepository enemigoRepository,
-                 JefeRepository jefeRepository) {
+    public Juego(PersonajeRepository personajeRepository, EnemigoRepository enemigoRepository, JefeRepository jefeRepository) {
         this.scanner = new Scanner(System.in);
         this.personajeRepository = personajeRepository;
         this.enemigoRepository = enemigoRepository;
@@ -61,11 +61,12 @@ public class Juego {
     private void cargarPersonaje() {
         System.out.print("Ingresa el nombre de tu personaje: ");
         String nombre = scanner.next();
-        personaje = personajeRepository.findByNombre(nombre);
-
+        Personaje personaje = personajeRepository.findByNombre(nombre);
         if (personaje == null) {
             System.out.println("Personaje no encontrado. Creando uno nuevo...");
-            personaje = new Personaje(nombre, 100, 10, 5); // Valores predeterminados
+            personaje = new Personaje(nombre, 100, 10, 5, 1); // Valores predeterminados
+            personaje.setNombre(nombre);
+            personaje.setNivel(1);  // Asignar nivel por defecto
             personajeRepository.save(personaje);
         } else {
             System.out.println("Personaje cargado: " + personaje.getNombre());
@@ -111,7 +112,17 @@ public class Juego {
         System.out.println("¡Has entrado en una casilla RPG!");
         // Crear enemigo aleatorio
         Enemigo enemigo = enemigoRepository.getRandomEnemigo(); // Obtener un enemigo aleatorio de la base de datos
-        System.out.println("Te enfrentas a: " + enemigo.getNombre());
+        if (enemigo != null) {
+            System.out.println("Enemigo encontrado: " + enemigo.getNombre());
+        } else {
+            System.out.println("ERROR: enemigo es null en procesarCasillaRPG.");
+        }
+
+        if (personaje == null) {
+            System.out.println("ERROR: personaje es null en procesarCasillaRPG.");
+        } else {
+            System.out.println("Personaje con vida: " + personaje.getVida());
+        }
 
         // Lógica de combate a turnos
         while (personaje.getVida() > 0 && enemigo.getVida() > 0) {
@@ -163,10 +174,11 @@ public class Juego {
         // Resultado del combate
         if (personaje.getVida() > 0) {
             System.out.println("¡Has ganado el combate!");
-            // Aquí puedes agregar experiencia o recompensas al jugador
+
         } else {
             System.out.println("¡Has perdido el combate!");
-            // Aquí puedes hacer lo que quieras cuando el jugador pierde (como restablecer su vida, etc.)
+            personaje.setVida(10); // No muere, pero queda con poca vida
+            System.out.println("¡Has sido derrotado por el Jefe! Pero sobrevives con 10 de vida...");
         }
     }
     // Método para calcular el daño, basándonos en ataque del atacante y defensa del defensor
@@ -184,16 +196,20 @@ public class Juego {
         Random random = new Random();
         int tipoMejora = random.nextInt(3); // 0 = ataque, 1 = vida, 2 = defensa
         int mejora = random.nextInt(6) + 5; // La mejora será entre 5 y 10 puntos
-
-        if (tipoMejora == 0) {
-            personaje.setAtaque(personaje.getAtaque() + mejora);
-            System.out.println("¡Has encontrado un objeto que mejora tu ATAQUE en +" + mejora + " puntos!");
-        } else if (tipoMejora == 1) {
-            personaje.setVida(personaje.getVida() + mejora);
-            System.out.println("¡Has encontrado un objeto que mejora tu VIDA en +" + mejora + " puntos!");
+        if (this.personaje == null) {
+            System.out.println("ERROR: El personaje no ha sido inicializado.");
+            return;
         } else {
-            personaje.setDefensa(personaje.getDefensa() + mejora);
-            System.out.println("¡Has encontrado un objeto que mejora tu DEFENSA en +" + mejora + " puntos!");
+            if (tipoMejora == 0) {
+                personaje.setAtaque(personaje.getAtaque() + mejora);
+                System.out.println("¡Has encontrado un objeto que mejora tu ATAQUE en +" + mejora + " puntos!");
+            } else if (tipoMejora == 1) {
+                personaje.setVida(personaje.getVida() + mejora);
+                System.out.println("¡Has encontrado un objeto que mejora tu VIDA en +" + mejora + " puntos!");
+            } else {
+                personaje.setDefensa(personaje.getDefensa() + mejora);
+                System.out.println("¡Has encontrado un objeto que mejora tu DEFENSA en +" + mejora + " puntos!");
+            }
         }
 
         // Guardar los cambios en la base de datos
@@ -210,34 +226,168 @@ public class Juego {
 
     // Lógica para procesar casilla de tipo MiniJefe
     private void procesarCasillaMiniJefe() {
-        System.out.println("¡Te enfrentas a un Mini Jefe!");
-        // Generamos un jefe aleatorio
-        Jefe jefe = obtenerJefeAleatorio();
-        // Creamos un mini jefe reduciendo las estadísticas del jefe
-        Jefe miniJefe = new Jefe(
-                jefe.getNombre(),
-                jefe.getVida() - 30,  // Reducción de vida
-                jefe.getAtaque() - 3,  // Reducción de ataque
-                jefe.getDefensa() - 2, // Reducción de defensa
-                jefe.getEfectoEspecial() // Efecto especial
-        );
-        lucharConJefe(miniJefe);
+        System.out.println("¡Has entrado en una casilla de Minijefe!");
+
+        // Generar Minijefe aleatorio con estadísticas reducidas
+        List<Jefe> jefes = jefeRepository.findAll();
+        if (jefes.isEmpty()) {
+            System.out.println("ERROR: No hay jefes en la base de datos.");
+            return; // Evita que el código continúe si no hay jefes
+        }
+
+        Random random = new Random();
+        Jefe jefeAleatorio = jefes.get(random.nextInt(jefes.size())); // Seleccionar uno aleatorio
+        jefes.set(random.nextInt(jefes.size()), jefeAleatorio);
+        Jefe minijefe = new Jefe();
+        minijefe.setNombre("Minijefe Feroz " + (random.nextInt(50) + 1));
+        minijefe.setAtaque(random.nextInt(6) + 10); // Ataque entre 10 y 15
+        minijefe.setVida(random.nextInt(15) + 30); // Vida entre 30 y 45
+        minijefe.setDefensa(random.nextInt(4) + 3); // Defensa entre 3 y 6
+
+
+        // Asignar efecto especial aleatorio
+        EfectoEspecial[] efectos = EfectoEspecial.values();
+        minijefe.setEfectoEspecial(efectos[random.nextInt(efectos.length)]);
+
+        System.out.println("Ha aparecido " + minijefe.getNombre() + " con efecto " + minijefe.getEfectoEspecial());
+        System.out.println("Estadísticas del Minijefe - Ataque: " + minijefe.getAtaque() + " | Vida: " + minijefe.getVida() + " | Defensa: " + minijefe.getDefensa());
+
+        // Guardar el minijefe en la BD para futuras peleas
+        jefeRepository.save(minijefe);
+
+        // Combate por turnos
+        while (personaje.getVida() > 0 && minijefe.getVida() > 0) {
+            // Turno del jugador
+            int danyoJugador = Math.max(1, personaje.getAtaque() - minijefe.getDefensa());
+            minijefe.setVida(minijefe.getVida() - danyoJugador);
+            System.out.println("Golpeas al Minijefe y le quitas " + danyoJugador + " de vida. Vida restante: " + minijefe.getVida());
+
+            // Si el Minijefe muere, termina la pelea
+            if (minijefe.getVida() <= 0) {
+                System.out.println("¡Has derrotado al Minijefe! Subes 1 nivel.");
+                personaje.setNivel(personaje.getNivel() + 1);
+                personaje.setAtaque(personaje.getAtaque() + 2);
+                personaje.setVida(personaje.getVida() + 5);
+                personaje.setDefensa(personaje.getDefensa() + 1);
+                personajeRepository.save(personaje);
+                return;
+            }
+
+            // Turno del Minijefe (aplica su efecto especial)
+            int danyoMinijefe = Math.max(1, minijefe.getAtaque() - personaje.getDefensa());
+
+            switch (minijefe.getEfectoEspecial()) {
+                case FUEGO:
+                    danyoMinijefe += 2; // Más daño
+                    System.out.println("El Minijefe usa FUEGO y te quema.");
+                    break;
+                case HIELO:
+                    personaje.setAtaque(Math.max(1, personaje.getAtaque() - 1)); // Reduce ataque
+                    System.out.println("El Minijefe usa HIELO y debilita tu ataque.");
+                    break;
+                case VENENO:
+                    personaje.setVida(personaje.getVida() - 1); // Daño adicional
+                    System.out.println("☠El Minijefe usa VENENO y te intoxica.");
+                    break;
+                case ESPINA:
+                    personaje.setVida(personaje.getVida() - (danyoJugador / 3)); // Devuelve daño
+                    System.out.println("El Minijefe usa ESPINA y te devuelve daño.");
+                    break;
+            }
+
+            personaje.setVida(personaje.getVida() - danyoMinijefe);
+            System.out.println("El Minijefe te ataca y te quita " + danyoMinijefe + " de vida. Vida restante: " + personaje.getVida());
+        }
+
+        // Si el jugador pierde
+        if (personaje.getVida() <= 0) {
+            personaje.setVida(10); // No muere, pero queda con poca vida
+            System.out.println("¡Has sido derrotado por el Minijefe! Pero sobrevives con 10 de vida...");
+        }
+
+        // Guardar los cambios del personaje
+        personajeRepository.save(personaje);
     }
 
     // Lógica para procesar casilla de tipo Jefe
     private void procesarCasillaJefe() {
-        System.out.println("¡Te enfrentas a un Jefe!");
-        Jefe jefe = obtenerJefeAleatorio(); // Obtener un jefe aleatorio
-        lucharConJefe(jefe);
+        System.out.println("¡Has entrado en una casilla de Jefe!");
+
+        // Generar Jefe aleatorio con efecto especial
+        // Obtener todos los jefes de la base de datos
+        List<Jefe> jefes = jefeRepository.findAll();
+        Random random = new Random();
+        jefes.get(random.nextInt(jefes.size())); // Seleccionar uno aleatorio
+        Jefe jefe = new Jefe();
+        jefe.setNombre("Jefe Mortal " + (random.nextInt(100) + 1));
+        jefe.setAtaque(random.nextInt(10) + 15); // Ataque entre 15 y 25
+        jefe.setVida(random.nextInt(20) + 50); // Vida entre 50 y 70
+        jefe.setDefensa(random.nextInt(6) + 5); // Defensa entre 5 y 10
+        // Asignar efecto especial aleatorio
+        EfectoEspecial[] efectos = EfectoEspecial.values();
+        jefe.setEfectoEspecial(efectos[random.nextInt(efectos.length)]);
+
+        System.out.println("Ha aparecido " + jefe.getNombre() + " con efecto " + jefe.getEfectoEspecial());
+        System.out.println("Estadísticas del jefe - Ataque: " + jefe.getAtaque() + " | Vida: " + jefe.getVida() + " | Defensa: " + jefe.getDefensa());
+
+        // Guardar el jefe en la BD para futuras peleas
+        jefeRepository.save(jefe);
+
+        // Combate por turnos
+        while (personaje.getVida() > 0 && jefe.getVida() > 0) {
+            // Turno del jugador
+            int danyoJugador = Math.max(1, personaje.getAtaque() - jefe.getDefensa());
+            jefe.setVida(jefe.getVida() - danyoJugador);
+            System.out.println("Golpeas al jefe y le quitas " + danyoJugador + " de vida. Vida restante del jefe: " + jefe.getVida());
+
+            // Si el jefe muere, termina la pelea
+            if (jefe.getVida() <= 0) {
+                System.out.println("¡Has derrotado al Jefe! Subes 2 niveles.");
+                personaje.setNivel(personaje.getNivel() + 2);
+                personaje.setAtaque(personaje.getAtaque() + 3);
+                personaje.setVida(personaje.getVida() + 10);
+                personaje.setDefensa(personaje.getDefensa() + 2);
+                personajeRepository.save(personaje);
+                return;
+            }
+
+            // Turno del jefe (aplica su efecto especial)
+            int danyoJefe = Math.max(1, jefe.getAtaque() - personaje.getDefensa());
+
+            switch (jefe.getEfectoEspecial()) {
+                case FUEGO:
+                    danyoJefe += 3; // Más daño
+                    System.out.println("El jefe usa FUEGO y te quema.");
+                    break;
+                case HIELO:
+                    personaje.setAtaque(Math.max(1, personaje.getAtaque() - 1)); // Reduce ataque
+                    System.out.println("El jefe usa HIELO y debilita tu ataque.");
+                    break;
+                case VENENO:
+                    personaje.setVida(personaje.getVida() - 2); // Daño adicional
+                    System.out.println("El jefe usa VENENO y te intoxica.");
+                    break;
+                case ESPINA:
+                    personaje.setVida(personaje.getVida() - (danyoJugador / 2)); // Devuelve daño
+                    System.out.println("El jefe usa ESPINA y te devuelve daño.");
+                    break;
+            }
+
+            personaje.setVida(personaje.getVida() - danyoJefe);
+            System.out.println("El jefe te ataca y te quita " + danyoJefe + " de vida. Vida restante: " + personaje.getVida());
+        }
+
+        // Si el jugador pierde
+        if (personaje.getVida() <= 0) {
+            personaje.setVida(10); // No muere, pero queda con poca vida
+            System.out.println("¡Has sido derrotado por el Jefe! Pero sobrevives con 10 de vida...");
+        }
+
+        // Guardar los cambios del personaje
+        personajeRepository.save(personaje);
     }
 
     // Método para obtener un jefe aleatorio de la base de datos
-    private Jefe obtenerJefeAleatorio() {
-        // Obtener todos los jefes de la base de datos
-        List<Jefe> jefes = jefeRepository.findAll();
-        Random rand = new Random();
-        return jefes.get(rand.nextInt(jefes.size())); // Seleccionar uno aleatorio
-    }
 
     // Lógica para luchar con un enemigo (en este caso, con cualquier tipo)
     private void lucharConEnemigo(Enemigo enemigo) {
@@ -245,21 +395,9 @@ public class Juego {
         // Aquí iría la lógica de combate (comparar ataques, defensa, vida, etc.)
         if (personaje.getAtaque() > enemigo.getDefensa()) {
             System.out.println("¡Has ganado!");
-            // Aquí puedes agregar experiencia o recompensas
         } else {
             System.out.println("¡Has perdido!");
             personaje.setVida(personaje.getVida() - enemigo.getAtaque());
-        }
-    }
-    private void lucharConJefe(Jefe jefe) {
-        System.out.println("¡Luchando contra: " + jefe.getNombre());
-        // Aquí iría la lógica de combate (comparar ataques, defensa, vida, etc.)
-        if (personaje.getAtaque() > jefe.getDefensa()) {
-            System.out.println("¡Has ganado!");
-            // Aquí puedes agregar experiencia o recompensas
-        } else {
-            System.out.println("¡Has perdido!");
-            personaje.setVida(personaje.getVida() - jefe.getAtaque());
         }
     }
 }

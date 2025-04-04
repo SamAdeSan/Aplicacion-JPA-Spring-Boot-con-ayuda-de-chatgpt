@@ -17,6 +17,7 @@ public class Personaje {
     private int ataque;
     private int vida;
     private int defensa;
+    private Integer nivel;
 
     @ManyToMany
     @JoinColumn(name = "casilla_id")
@@ -29,11 +30,12 @@ public class Personaje {
 
     public Personaje() {}
 
-    public Personaje(String nombre, int ataque, int vida, int defensa) {
+    public Personaje(String nombre, int ataque, int vida, int defensa, Integer nivel) {
         this.nombre = nombre;
         this.ataque = ataque;
         this.vida = vida;
         this.defensa = defensa;
+        this.nivel = nivel;
     }
 
     public int getId() { return id; }
@@ -53,6 +55,10 @@ public class Personaje {
     public int getDefensa() { return defensa; }
 
     public void setDefensa(int defensa) { this.defensa = defensa; }
+
+    public Integer getNivel() { return nivel; }
+
+    public void setNivel(Integer nivel) { this.nivel = nivel; }
 
     public List<Casilla> getCasilla() { return casilla; }
 
